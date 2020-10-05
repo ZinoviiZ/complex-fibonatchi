@@ -1,0 +1,25 @@
+sudo: required
+language: generic 
+
+services:
+  - docker
+
+before_install:
+  - docker build -t zinovii/multi-docker-aws-client-test -f ./client/Dockerfile.dev ./client
+
+
+script:
+  - docker run -e CI=true zinovii/multi-docker-aws-client-test npm test
+
+after_success:
+  - docker build -t zinovii/multi-docker-aws-client ./client
+  - docker build -t zinovii/multi-docker-aws-server ./server
+  - docker build -t zinovii/multi-docker-aws-worker ./worker
+  - docker build -t zinovii/multi-docker-aws-nginx ./nginx
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push zinovii/multi-docker-aws-client
+  - docker push zinovii/multi-docker-aws-server
+  - docker push zinovii/multi-docker-aws-worker
+  - docker push zinovii/multi-docker-aws-nginx
